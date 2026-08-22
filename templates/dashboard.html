@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Arena Pulse{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">
+            Tournament Overview
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+            Real-time insights into active competitions, teams, and fixture schedules
+        </p>
+    </div>
+
+    <div class="btn-group">
+        {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('create_tournament') }}" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Create Tournament
+            </a>
+            <a href="{{ url_for('create_match') }}" class="btn btn-outline">
+                <i class="fa-solid fa-calendar-plus"></i> Schedule Match
+            </a>
+        {% else %}
+            <a href="{{ url_for('create_team') }}" class="btn btn-primary">
+                <i class="fa-solid fa-people-group"></i> Create Team
+            </a>
+            <a href="{{ url_for('tournaments') }}" class="btn btn-outline">
+                <i class="fa-solid fa-trophy"></i> Explore Tournaments
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Key Metrics Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Tournaments</div>
+            <div class="stat-value">{{ total_tournaments }}</div>
+        </div>
+        <div class="stat-icon icon-blue">
+            <i class="fa-solid fa-trophy"></i>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Participating Teams</div>
+            <div class="stat-value">{{ total_teams }}</div>
+        </div>
+        <div class="stat-icon icon-purple">
+            <i class="fa-solid fa-users"></i>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Upcoming Fixtures</div>
+            <div class="stat-value">{{ upcoming_matches }}</div>
+        </div>
+        <div class="stat-icon icon-amber">
+            <i class="fa-solid fa-stopwatch"></i>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Completed Matches</div>
+            <div class="stat-value">{{ completed_matches }}</div>
+        </div>
+        <div class="stat-icon icon-emerald">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Main Panels Layout -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
+
+    <!-- Recent Tournaments Card -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fa-solid fa-fire"></i> Recent Tournaments
+            </div>
+            <a href="{{ url_for('tournaments') }}" class="btn btn-outline btn-sm">View All</a>
+        </div>
+
+        {% if recent_tournaments %}
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Tournament</th>
+                        <th>Sport</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in recent_tournaments %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; color: #fff;">{{ t.name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-dim);">{{ t.location }}</div>
+                        </td>
+                        <td>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-volleyball"></i> {{ t.sport }}</span>
+                        </td>
+                        <td>
+                            {% if t.status == 'Upcoming' %}
+                                <span class="badge badge-upcoming">Upcoming</span>
+                            {% elif t.status == 'Ongoing' %}
+                                <span class="badge badge-ongoing">Ongoing</span>
+                            {% else %}
+                                <span class="badge badge-completed">Completed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('tournament_details', id=t.id) }}" class="btn btn-outline btn-sm">
+                                Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem 0;">
+            No tournaments created yet.
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- Upcoming Matches List Card -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fa-solid fa-gamepad"></i> Next Up Fixtures
+            </div>
+            <a href="{{ url_for('matches') }}" class="btn btn-outline btn-sm">All Matches</a>
+        </div>
+
+        {% if upcoming_match_list %}
+            {% for m in upcoming_match_list %}
+            <div class="match-card" style="padding: 1rem;">
+                <div style="flex: 1;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: center; justify-content: space-between;">
+                        <span><i class="fa-solid fa-trophy" style="color: var(--primary);"></i> {{ m.tournament.name }}</span>
+                        {% if m.status == 'Live' %}
+                            <span class="badge badge-live"><i class="fa-solid fa-tower-broadcast"></i> LIVE</span>
+                        {% else %}
+                            <span class="badge badge-upcoming">{{ m.match_date.strftime('%b %d, %Y') }} @ {{ m.match_time }}</span>
+                        {% endif %}
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: #fff; font-size: 1rem;">
+                        <span>{{ m.team1.team_name }}</span>
+                        <span class="match-vs">VS</span>
+                        <span>{{ m.team2.team_name }}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.4rem;">
+                        <i class="fa-solid fa-location-dot"></i> {{ m.venue }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem 0;">
+            No upcoming matches scheduled.
+        </p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

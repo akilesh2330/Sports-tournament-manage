@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Match Results & Archives - Arena Pulse{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">
+        Completed Match Archive
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+        View verified final scores, declared match winners, and match replays
+    </p>
+</div>
+
+{% if matches %}
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for m in matches %}
+        <div class="card" style="padding: 1.25rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div style="flex: 1; min-width: 280px;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 0.5rem;">
+                        <i class="fa-solid fa-trophy"></i> {{ m.tournament.name }} &bull; Round {{ m.round_number }}
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; max-width: 450px;">
+                        <div style="font-size: 1.15rem; font-weight: 800; {% if m.winner_id == m.team1_id %}color: #34d399;{% else %}color: #fff;{% endif %} display: flex; align-items: center; gap: 0.5rem;">
+                            {% if m.winner_id == m.team1_id %}<i class="fa-solid fa-crown" style="color: #f59e0b;"></i>{% endif %}
+                            {{ m.team1.team_name }}
+                        </div>
+
+                        <div class="match-score" style="margin: 0 1rem;">
+                            {{ m.score1 }} - {{ m.score2 }}
+                        </div>
+
+                        <div style="font-size: 1.15rem; font-weight: 800; {% if m.winner_id == m.team2_id %}color: #34d399;{% else %}color: #fff;{% endif %} display: flex; align-items: center; gap: 0.5rem;">
+                            {{ m.team2.team_name }}
+                            {% if m.winner_id == m.team2_id %}<i class="fa-solid fa-crown" style="color: #f59e0b;"></i>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: right; font-size: 0.85rem; color: var(--text-muted);">
+                    <div><i class="fa-solid fa-calendar-check"></i> {{ m.match_date.strftime('%B %d, %Y') }}</div>
+                    <div><i class="fa-solid fa-location-dot"></i> {{ m.venue }}</div>
+
+                    {% if m.winner %}
+                    <div style="margin-top: 0.35rem; color: #34d399; font-weight: 700;">
+                        Winner: {{ m.winner.team_name }}
+                    </div>
+                    {% else %}
+                    <div style="margin-top: 0.35rem; color: var(--text-muted); font-weight: 700;">
+                        Result: Draw / Tied
+                    </div>
+                    {% endif %}
+
+                    {% if m.stream_url %}
+                    <a href="{{ m.stream_url }}" target="_blank" class="btn btn-outline btn-sm" style="margin-top: 0.5rem; display: inline-flex;">
+                        <i class="fa-solid fa-circle-play" style="color: #ef4444;"></i> Watch Replay
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+    <i class="fa-solid fa-award" style="font-size: 2.5rem; color: var(--text-dim); margin-bottom: 1rem;"></i>
+    <h3 style="color: #fff; font-weight: 700;">No Completed Match Results Yet</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Results will appear here as ongoing tournament fixtures are completed.</p>
+</div>
+{% endif %}
+{% endblock %}

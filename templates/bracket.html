@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Tournament Bracket - {{ tournament.name }} - Arena Pulse{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">
+                <i class="fa-solid fa-sitemap"></i> Knockout Bracket Visualizer
+            </div>
+            <h1 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-top: 0.25rem;">
+                {{ tournament.name }}
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.2rem;">
+                {{ tournament.sport }} &bull; {{ tournament.location }}
+            </p>
+        </div>
+
+        <div class="btn-group">
+            <a href="{{ url_for('tournament_details', id=tournament.id) }}" class="btn btn-outline">
+                <i class="fa-solid fa-arrow-left"></i> Back to Tournament Details
+            </a>
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('create_match') }}?tournament_id={{ tournament.id }}" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Add Match Fixture
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if rounds %}
+<div class="card" style="padding: 2rem; overflow-x: auto;">
+    <div class="bracket-wrapper">
+        {% for round_num, match_list in rounds.items() %}
+        <div class="bracket-round">
+            <div class="round-header">
+                {% if round_num == 1 %}
+                    Round 1
+                {% elif round_num == 2 %}
+                    Quarter-Finals / Round 2
+                {% elif round_num == 3 %}
+                    Semi-Finals
+                {% elif round_num == 4 %}
+                    Finals
+                {% else %}
+                    Round {{ round_num }}
+                {% endif %}
+            </div>
+
+            {% for m in match_list %}
+            <div class="bracket-match">
+                <div style="font-size: 0.75rem; color: var(--text-dim); padding: 0.35rem 0.75rem; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center;">
+                    <span>Match #{{ m.id }}</span>
+                    <span>{{ m.match_date.strftime('%b %d') }}</span>
+                </div>
+
+                <!-- Team 1 -->
+                <div class="bracket-team {% if m.winner_id == m.team1_id %}winner{% endif %}">
+                    <span>
+                        {% if m.winner_id == m.team1_id %}<i class="fa-solid fa-crown" style="color: #f59e0b; margin-right: 0.35rem;"></i>{% endif %}
+                        {{ m.team1.team_name }}
+                    </span>
+                    <span class="bracket-score">{{ m.score1 if m.status != 'Upcoming' else '-' }}</span>
+                </div>
+
+                <!-- Team 2 -->
+                <div class="bracket-team {% if m.winner_id == m.team2_id %}winner{% endif %}">
+                    <span>
+                        {% if m.winner_id == m.team2_id %}<i class="fa-solid fa-crown" style="color: #f59e0b; margin-right: 0.35rem;"></i>{% endif %}
+                        {{ m.team2.team_name }}
+                    </span>
+                    <span class="bracket-score">{{ m.score2 if m.status != 'Upcoming' else '-' }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+    <i class="fa-solid fa-sitemap" style="font-size: 2.5rem; color: var(--text-dim); margin-bottom: 1rem;"></i>
+    <h3 style="color: #fff; font-weight: 700;">No Bracket Fixtures Found</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+        No matches have been scheduled for this tournament yet.
+    </p>
+    {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('create_match') }}?tournament_id={{ tournament.id }}" class="btn btn-primary" style="margin-top: 1rem;">
+        <i class="fa-solid fa-plus"></i> Schedule First Match
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

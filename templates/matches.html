@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Match Fixtures & Live Scores - Arena Pulse{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">
+            Match Fixtures & Live Scores
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+            Track scheduled matches, update live scores, and view tournament streams
+        </p>
+    </div>
+
+    {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('create_match') }}" class="btn btn-primary">
+        <i class="fa-solid fa-calendar-plus"></i> Schedule New Match
+    </a>
+    {% endif %}
+</div>
+
+<!-- Tournament Filter Dropdown -->
+<div class="card" style="margin-bottom: 2rem; padding: 1rem 1.25rem;">
+    <form method="GET" action="{{ url_for('matches') }}" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <label for="tournament_id" style="font-weight: 600; color: #fff; font-size: 0.9rem;">
+            <i class="fa-solid fa-filter" style="color: var(--primary);"></i> Filter by Tournament:
+        </label>
+        <select name="tournament_id" id="tournament_id" class="form-select" style="max-width: 320px;" onchange="this.form.submit()">
+            <option value="">All Tournaments</option>
+            {% for t in tournaments %}
+                <option value="{{ t.id }}" {% if selected_t_id == t.id %}selected{% endif %}>{{ t.name }} ({{ t.sport }})</option>
+            {% endfor %}
+        </select>
+
+        {% if selected_t_id %}
+        <a href="{{ url_for('matches') }}" class="btn btn-outline btn-sm">Clear Filter</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Matches Fixture List -->
+{% if matches %}
+    {% for m in matches %}
+    <div class="match-card">
+        <div class="match-teams">
+            <div class="team-box {% if m.winner_id == m.team1_id %}winner{% endif %}">
+                <span>{{ m.team1.team_name }}</span>
+            </div>
+
+            {% if m.status == 'Completed' or m.status == 'Live' %}
+                <div class="match-score">{{ m.score1 }} - {{ m.score2 }}</div>
+            {% else %}
+                <div class="match-vs">VS</div>
+            {% endif %}
+
+            <div class="team-box {% if m.winner_id == m.team2_id %}winner{% endif %}" style="justify-content: flex-end;">
+                <span>{{ m.team2.team_name }}</span>
+            </div>
+        </div>
+
+        <div class="match-details-meta" style="margin-left: 2rem; min-width: 180px;">
+            <div style="font-weight: 700; color: #fff;">{{ m.tournament.name }}</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+                Round {{ m.round_number }} &bull; {{ m.match_date.strftime('%b %d') }} @ {{ m.match_time }}
+            </div>
+            <div>
+                <i class="fa-solid fa-location-dot"></i> {{ m.venue }}
+            </div>
+            <div style="margin-top: 0.25rem;">
+                {% if m.status == 'Upcoming' %}
+                    <span class="badge badge-upcoming">Upcoming</span>
+                {% elif m.status == 'Live' %}
+                    <span class="badge badge-live"><i class="fa-solid fa-tower-broadcast"></i> LIVE</span>
+                {% else %}
+                    <span class="badge badge-completed">Completed</span>
+                {% endif %}
+            </div>
+
+            {% if m.stream_url %}
+            <a href="{{ m.stream_url }}" target="_blank" class="btn btn-outline btn-sm" style="margin-top: 0.5rem; justify-content: center;">
+                <i class="fa-solid fa-circle-play" style="color: #ef4444;"></i> Watch Stream
+            </a>
+            {% endif %}
+
+            {% if current_user.role == 'admin' %}
+            <button type="button" onclick="openScoreModal({{ m.id }}, '{{ m.team1.team_name|escapejs }}', '{{ m.team2.team_name|escapejs }}', {{ m.score1 }}, {{ m.score2 }}, '{{ m.status }}')" class="btn btn-primary btn-sm" style="margin-top: 0.5rem; justify-content: center;">
+                <i class="fa-solid fa-pen-to-square"></i> Update Score
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+    <i class="fa-solid fa-calendar-xmark" style="font-size: 2.5rem; color: var(--text-dim); margin-bottom: 1rem;"></i>
+    <h3 style="color: #fff; font-weight: 700;">No Matches Scheduled</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">There are no scheduled fixtures for the selected criteria.</p>
+</div>
+{% endif %}
+
+<!-- Admin Update Score Modal Dialog -->
+{% if current_user.role == 'admin' %}
+<div id="score-modal" class="modal-overlay">
+    <div class="modal-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+            <h3 style="color: #fff; font-weight: 700;">Update Match Result</h3>
+            <button type="button" onclick="closeScoreModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="score-form" method="POST">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                <div class="form-group">
+                    <label class="form-label" id="modal-team1-label">Team 1 Score</label>
+                    <input type="number" id="score1" name="score1" class="form-control" min="0" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" id="modal-team2-label">Team 2 Score</label>
+                    <input type="number" id="score2" name="score2" class="form-control" min="0" value="0" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="match-status">Match Status</label>
+                <select id="match-status" name="status" class="form-select">
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Live">Live / Ongoing</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success" style="flex: 1; justify-content: center;">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Result
+                </button>
+                <button type="button" onclick="closeScoreModal()" class="btn btn-outline">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openScoreModal(matchId, t1Name, t2Name, s1, s2, status) {
+    const form = document.getElementById('score-form');
+    form.action = `/matches/${matchId}/score`;
+    document.getElementById('modal-team1-label').innerText = `${t1Name} Score`;
+    document.getElementById('modal-team2-label').innerText = `${t2Name} Score`;
+    document.getElementById('score1').value = s1;
+    document.getElementById('score2').value = s2;
+    document.getElementById('match-status').value = status;
+    document.getElementById('score-modal').classList.add('active');
+}
+
+function closeScoreModal() {
+    document.getElementById('score-modal').classList.remove('active');
+}
+</script>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Registration Approvals - Arena Pulse{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">
+        Team Registration Approvals
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+        Review pending entry applications for registered tournament leagues
+    </p>
+</div>
+
+<!-- Pending Registrations Panel -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-clock" style="color: var(--accent-amber);"></i> Pending Approval Requests ({{ pending_regs|length }})
+        </div>
+    </div>
+
+    {% if pending_regs %}
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Tournament</th>
+                    <th>Team Name</th>
+                    <th>Captain</th>
+                    <th>Registered At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reg in pending_regs %}
+                <tr>
+                    <td>
+                        <strong style="color: #fff;">{{ reg.tournament.name }}</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-dim);">{{ reg.tournament.sport }}</div>
+                    </td>
+                    <td>
+                        <strong style="color: #60a5fa;">{{ reg.team.team_name }}</strong>
+                    </td>
+                    <td>
+                        {{ reg.team.captain }}
+                    </td>
+                    <td>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">{{ reg.registered_at.strftime('%b %d, %Y %H:%M') }}</span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <form action="{{ url_for('process_registration', id=reg.id, action='approve') }}" method="POST">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fa-solid fa-check"></i> Approve
+                                </button>
+                            </form>
+                            <form action="{{ url_for('process_registration', id=reg.id, action='reject') }}" method="POST">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fa-solid fa-xmark"></i> Reject
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem 0;">
+        <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald); font-size: 1.5rem; display: block; margin-bottom: 0.5rem;"></i>
+        All pending team registration requests have been reviewed!
+    </p>
+    {% endif %}
+</div>
+
+<!-- All Registration History Panel -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-list-check"></i> All Registration History ({{ all_regs|length }})
+        </div>
+    </div>
+
+    {% if all_regs %}
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tournament</th>
+                    <th>Team</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reg in all_regs %}
+                <tr>
+                    <td>#{{ reg.id }}</td>
+                    <td><strong style="color: #fff;">{{ reg.tournament.name }}</strong></td>
+                    <td>{{ reg.team.team_name }}</td>
+                    <td>
+                        {% if reg.status == 'Approved' %}
+                            <span class="badge badge-approved">Approved</span>
+                        {% elif reg.status == 'Pending' %}
+                            <span class="badge badge-pending">Pending</span>
+                        {% else %}
+                            <span class="badge badge-rejected">Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td><span style="font-size: 0.85rem; color: var(--text-dim);">{{ reg.registered_at.strftime('%b %d, %Y') }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem 0;">
+        No registration logs recorded.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}

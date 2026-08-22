@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Teams - Arena Pulse{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">
+            {% if current_user.role == 'admin' %}All Participating Teams{% else %}My Registered Teams{% endif %}
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+            Manage sports teams, roster captains, and tournament entries
+        </p>
+    </div>
+
+    <a href="{{ url_for('create_team') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Create New Team
+    </a>
+</div>
+
+{% if teams %}
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+    {% for team in teams %}
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <span class="badge badge-upcoming">
+                    <i class="fa-solid fa-volleyball"></i> {{ team.sport }}
+                </span>
+                <span style="font-size: 0.78rem; color: var(--text-dim);">
+                    Joined {{ team.created_at.strftime('%b %Y') }}
+                </span>
+            </div>
+
+            <h3 style="font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">
+                {{ team.team_name }}
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                <div>
+                    <i class="fa-solid fa-user-shield" style="width: 20px; color: var(--primary);"></i> Captain: <strong style="color: #fff;">{{ team.captain }}</strong>
+                </div>
+                {% if current_user.role == 'admin' %}
+                <div>
+                    <i class="fa-solid fa-user" style="width: 20px; color: var(--text-dim);"></i> Owner: {{ team.owner.name }} ({{ team.owner.email }})
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+            <span style="font-size: 0.8rem; color: var(--text-dim);">
+                <i class="fa-solid fa-trophy"></i> {{ team.registrations|length }} Registrations
+            </span>
+
+            {% if current_user.role == 'admin' or team.user_id == current_user.id %}
+            <form action="{{ url_for('delete_team', id=team.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete team {{ team.team_name }}?');">
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+    <i class="fa-solid fa-users-slash" style="font-size: 2.5rem; color: var(--text-dim); margin-bottom: 1rem;"></i>
+    <h3 style="color: #fff; font-weight: 700;">No Teams Created Yet</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Create a team to start registering for upcoming sports tournaments.</p>
+    <a href="{{ url_for('create_team') }}" class="btn btn-primary" style="margin-top: 1.25rem;">
+        <i class="fa-solid fa-plus"></i> Create First Team
+    </a>
+</div>
+{% endif %}
+{% endblock %}

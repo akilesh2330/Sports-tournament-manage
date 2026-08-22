@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Team - Arena Pulse{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fa-solid fa-people-group"></i> Create New Team
+            </div>
+            <a href="{{ url_for('teams') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <form action="{{ url_for('create_team') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="team_name">Team Name</label>
+                <input type="text" id="team_name" name="team_name" class="form-control" placeholder="e.g. Thunder Strikers" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="captain">Team Captain Name</label>
+                <input type="text" id="captain" name="captain" class="form-control" placeholder="e.g. Alex Morgan" value="{{ current_user.name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="sport">Primary Sport</label>
+                <input type="text" id="sport" name="sport" class="form-control" placeholder="Football, Cricket, Valorant, Basketball..." required>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
+                    <i class="fa-solid fa-check"></i> Create Team
+                </button>
+                <a href="{{ url_for('teams') }}" class="btn btn-outline" style="justify-content: center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

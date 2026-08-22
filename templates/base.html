@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sports Tournament Manager{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header / Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard') }}" class="brand-logo">
+                <i class="fa-solid fa-trophy"></i>
+                <span>Arena Pulse</span>
+            </a>
+
+            {% if session.get('user_id') %}
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-pie"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('tournaments') }}" class="{% if 'tournament' in request.endpoint %}active{% endif %}">
+                        <i class="fa-solid fa-calendar-days"></i> Tournaments
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('teams') }}" class="{% if 'team' in request.endpoint %}active{% endif %}">
+                        <i class="fa-solid fa-users"></i> Teams
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('matches') }}" class="{% if request.endpoint == 'matches' %}active{% endif %}">
+                        <i class="fa-solid fa-gamepad"></i> Matches
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('results') }}" class="{% if request.endpoint == 'results' %}active{% endif %}">
+                        <i class="fa-solid fa-award"></i> Results
+                    </a>
+                </li>
+
+                {% if current_user and current_user.role == 'admin' %}
+                <li class="nav-item">
+                    <a href="{{ url_for('registrations') }}" class="{% if request.endpoint == 'registrations' %}active{% endif %}">
+                        <i class="fa-solid fa-user-check"></i> Approvals
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <div class="nav-user-badge">
+                <div class="user-info">
+                    <div class="user-name">{{ session.get('user_name', 'User') }}</div>
+                    <span class="role-pill {% if session.get('user_role') == 'admin' %}role-admin{% else %}role-user{% endif %}">
+                        {{ session.get('user_role', 'user') }}
+                    </span>
+                </div>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm" title="Log Out">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+            {% else %}
+            <div class="btn-group">
+                <a href="{{ url_for('login') }}" class="btn btn-outline">Log In</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="main-wrapper">
+        <!-- Flash Alerts -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-exclamation{% elif category == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="nav-container">
+            <p>&copy; 2026 Arena Pulse Sports Tournament Management Platform. Built for excellence.</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

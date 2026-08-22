@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Tournament - Arena Pulse{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fa-solid fa-trophy"></i> {{ action }} Tournament
+            </div>
+            <a href="{{ url_for('tournaments') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <form action="{% if action == 'Create' %}{{ url_for('create_tournament') }}{% else %}{{ url_for('edit_tournament', id=tournament.id) }}{% endif %}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="name">Tournament Name</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Summer Premier League 2026" value="{{ tournament.name if tournament else '' }}" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="sport">Sport Type</label>
+                    <input type="text" id="sport" name="sport" class="form-control" placeholder="Football, Cricket, Valorant..." value="{{ tournament.sport if tournament else '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="max_teams">Max Teams Capacity</label>
+                    <input type="number" id="max_teams" name="max_teams" class="form-control" min="2" max="64" value="{{ tournament.max_teams if tournament else 8 }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="location">Location / Venue</label>
+                <input type="text" id="location" name="location" class="form-control" placeholder="Main Arena Stadium / Online" value="{{ tournament.location if tournament else '' }}" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="start_date">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ tournament.start_date.strftime('%Y-%m-%d') if tournament else '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ tournament.end_date.strftime('%Y-%m-%d') if tournament else '' }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="status">Tournament Status</label>
+                <select id="status" name="status" class="form-select">
+                    <option value="Upcoming" {% if tournament and tournament.status == 'Upcoming' %}selected{% endif %}>Upcoming</option>
+                    <option value="Ongoing" {% if tournament and tournament.status == 'Ongoing' %}selected{% endif %}>Ongoing / Live</option>
+                    <option value="Completed" {% if tournament and tournament.status == 'Completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Tournament
+                </button>
+                <a href="{{ url_for('tournaments') }}" class="btn btn-outline" style="justify-content: center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

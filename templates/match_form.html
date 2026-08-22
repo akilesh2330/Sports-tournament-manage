@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Schedule Match - Arena Pulse{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fa-solid fa-calendar-plus"></i> Schedule New Match
+            </div>
+            <a href="{{ url_for('matches') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <form action="{{ url_for('create_match') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="tournament_id">Select Tournament</label>
+                <select name="tournament_id" id="tournament_id" class="form-select" required>
+                    {% for t in tournaments %}
+                        <option value="{{ t.id }}" {% if request.args.get('tournament_id', type=int) == t.id %}selected{% endif %}>
+                            {{ t.name }} ({{ t.sport }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="team1_id">Team 1</label>
+                    <select name="team1_id" id="team1_id" class="form-select" required>
+                        {% for team in teams %}
+                            <option value="{{ team.id }}">{{ team.team_name }} ({{ team.sport }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="team2_id">Team 2</label>
+                    <select name="team2_id" id="team2_id" class="form-select" required>
+                        {% for team in teams %}
+                            <option value="{{ team.id }}">{{ team.team_name }} ({{ team.sport }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="match_date">Match Date</label>
+                    <input type="date" id="match_date" name="match_date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="match_time">Match Time</label>
+                    <input type="text" id="match_time" name="match_time" class="form-control" placeholder="15:00 PM" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="venue">Stadium / Venue Name</label>
+                    <input type="text" id="venue" name="venue" class="form-control" placeholder="Stadium Court A" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="round_number">Tournament Round</label>
+                    <input type="number" id="round_number" name="round_number" class="form-control" min="1" max="10" value="1" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="stream_url">Live Stream URL (Optional)</label>
+                <input type="url" id="stream_url" name="stream_url" class="form-control" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
+                    <i class="fa-solid fa-calendar-check"></i> Save Match Schedule
+                </button>
+                <a href="{{ url_for('matches') }}" class="btn btn-outline" style="justify-content: center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

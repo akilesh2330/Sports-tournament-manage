@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tournament.name }} - Arena Pulse{% endblock %}
+
+{% block content %}
+<!-- Tournament Hero Header Card -->
+<div class="card" style="margin-bottom: 2rem; position: relative; overflow: hidden;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 0.05em;">
+                    <i class="fa-solid fa-trophy"></i> {{ tournament.sport }}
+                </span>
+                {% if tournament.status == 'Upcoming' %}
+                    <span class="badge badge-upcoming">Upcoming</span>
+                {% elif tournament.status == 'Ongoing' %}
+                    <span class="badge badge-ongoing">Ongoing / Live</span>
+                {% else %}
+                    <span class="badge badge-completed">Completed</span>
+                {% endif %}
+            </div>
+
+            <h1 style="font-size: 2.2rem; font-weight: 800; color: #fff; margin-bottom: 0.75rem;">
+                {{ tournament.name }}
+            </h1>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                <span><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> {{ tournament.location }}</span>
+                <span><i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> {{ tournament.start_date.strftime('%b %d, %Y') }} — {{ tournament.end_date.strftime('%b %d, %Y') }}</span>
+                <span><i class="fa-solid fa-users" style="color: var(--primary);"></i> Capacity: {{ approved_registrations|length }} / {{ tournament.max_teams }} Teams Approved</span>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end;">
+            <a href="{{ url_for('bracket', id=tournament.id) }}" class="btn btn-primary">
+                <i class="fa-solid fa-sitemap"></i> View Knockout Bracket
+            </a>
+
+            {% if current_user and current_user.role != 'admin' %}
+                {% if user_teams %}
+                    <button type="button" onclick="document.getElementById('register-modal').classList.add('active')" class="btn btn-success">
+                        <i class="fa-solid fa-user-plus"></i> Register Your Team
+                    </button>
+                {% else %}
+                    <a href="{{ url_for('create_team') }}" class="btn btn-outline btn-sm">
+                        <i class="fa-solid fa-plus"></i> Create a Team First to Register
+                    </a>
+                {% endif %}
+            {% endif %}
+
+            {% if current_user and current_user.role == 'admin' %}
+            <div class="btn-group" style="margin-top: 0.5rem;">
+                <a href="{{ url_for('edit_tournament', id=tournament.id) }}" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </a>
+                <a href="{{ url_for('create_match') }}?tournament_id={{ tournament.id }}" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-calendar-plus"></i> Schedule Match
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Details & Matches Grid Layout -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: start;">
+
+    <!-- Approved Teams Panel -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fa-solid fa-shield-halved"></i> Approved Teams ({{ approved_registrations|length }})
+            </div>
+        </div>
+
+        {% if approved_registrations %}
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Team Name</th>
+                        <th>Captain</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in approved_registrations %}
+                    <tr>
+                        <td>
+                            <strong style="color: #fff;">{{ reg.team.team_name }}</strong>
+                        </td>
+                        <td>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">{{ reg.team.captain }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.88rem; text-align: center; padding: 1.5rem 0;">
+            No teams approved yet.
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- Fixtures & Matches Panel -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fa-solid fa-gamepad"></i> Fixtures & Matches ({{ matches|length }})
+            </div>
+            {% if current_user and current_user.role == 'admin' %}
+            <a href="{{ url_for('create_match') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-plus"></i> Add Match
+            </a>
+            {% endif %}
+        </div>
+
+        {% if matches %}
+            {% for m in matches %}
+            <div class="match-card">
+                <div class="match-teams">
+                    <div class="team-box {% if m.winner_id == m.team1_id %}winner{% endif %}">
+                        <span>{{ m.team1.team_name }}</span>
+                    </div>
+
+                    {% if m.status == 'Completed' %}
+                        <div class="match-score">{{ m.score1 }} - {{ m.score2 }}</div>
+                    {% else %}
+                        <div class="match-vs">VS</div>
+                    {% endif %}
+
+                    <div class="team-box {% if m.winner_id == m.team2_id %}winner{% endif %}" style="justify-content: flex-end;">
+                        <span>{{ m.team2.team_name }}</span>
+                    </div>
+                </div>
+
+                <div class="match-details-meta" style="margin-left: 1.5rem;">
+                    <div>Round {{ m.round_number }}</div>
+                    <div><i class="fa-solid fa-calendar"></i> {{ m.match_date.strftime('%b %d') }} @ {{ m.match_time }}</div>
+                    <div><i class="fa-solid fa-location-dot"></i> {{ m.venue }}</div>
+                    <div>
+                        {% if m.status == 'Upcoming' %}
+                            <span class="badge badge-upcoming">Upcoming</span>
+                        {% elif m.status == 'Live' %}
+                            <span class="badge badge-live">LIVE</span>
+                        {% else %}
+                            <span class="badge badge-completed">Completed</span>
+                        {% endif %}
+                    </div>
+                    {% if m.stream_url %}
+                    <a href="{{ m.stream_url }}" target="_blank" style="font-size: 0.8rem; color: #f87171; margin-top: 0.2rem;">
+                        <i class="fa-solid fa-video"></i> Watch Stream
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem 0;">
+            No matches scheduled for this tournament yet.
+        </p>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Team Registration Modal Dialog -->
+{% if current_user and current_user.role != 'admin' and user_teams %}
+<div id="register-modal" class="modal-overlay">
+    <div class="modal-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+            <h3 style="color: #fff; font-weight: 700;">Register Team for Tournament</h3>
+            <button type="button" onclick="document.getElementById('register-modal').classList.remove('active')" style="background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form action="{{ url_for('register_team_for_tournament', tournament_id=tournament.id) }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="team_id">Select Your Team</label>
+                <select name="team_id" id="team_id" class="form-select" required>
+                    {% for team in user_teams %}
+                        <option value="{{ team.id }}" {% if team.id in registered_team_ids %}disabled{% endif %}>
+                            {{ team.team_name }} ({{ team.sport }}) {% if team.id in registered_team_ids %}— Already Registered{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                Submitting your registration will place your team into "Pending" status until verified by the tournament organizers.
+            </p>
+
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-success" style="flex: 1; justify-content: center;">
+                    Submit Registration
+                </button>
+                <button type="button" onclick="document.getElementById('register-modal').classList.remove('active')" class="btn btn-outline">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

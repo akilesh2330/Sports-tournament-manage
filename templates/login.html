@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Log In - Arena Pulse{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+    <div class="card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 60px; height: 60px; background: rgba(59, 130, 246, 0.15); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--primary); font-size: 1.8rem;">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h2 style="font-size: 1.6rem; color: #fff; font-weight: 800;">Welcome Back</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem;">Log in to manage tournaments and teams</p>
+        </div>
+
+        <form action="{{ url_for('login') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="name@domain.com" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.8rem; margin-top: 1rem;">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In
+            </button>
+        </form>
+
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.05em;">
+                Quick Demo Credentials
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <button type="button" onclick="fillCredentials('admin@tournament.com', 'admin123')" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center; font-size: 0.8rem;">
+                    <i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Admin Account
+                </button>
+                <button type="button" onclick="fillCredentials('user@tournament.com', 'user123')" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center; font-size: 0.8rem;">
+                    <i class="fa-solid fa-user" style="color: #3b82f6;"></i> User Account
+                </button>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+            Don't have an account? <a href="{{ url_for('register') }}" style="font-weight: 600;">Sign up now</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function fillCredentials(email, pw) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = pw;
+}
+</script>
+{% endblock %}

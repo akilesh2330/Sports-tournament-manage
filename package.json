@@ -1,0 +1,11 @@
+{
+  "name": "sports-tournament-manager-mern",
+  "version": "1.0.0",
+  "description": "Full-Stack MERN (MongoDB, Express, React, Node) Sports Tournament Management Application",
+  "scripts": {
+    "server": "npm --prefix server start",
+    "client": "npm --prefix client dev",
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "build": "npm --prefix client build"
+  }
+}
